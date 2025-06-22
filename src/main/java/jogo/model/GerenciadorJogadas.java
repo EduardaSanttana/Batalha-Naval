@@ -18,11 +18,8 @@ public class GerenciadorJogadas implements Runnable {
         while (true) {
             try {
                 String mensagem = (String) entradaJogador1.readObject();
-                System.out.println("Mensagem recebida de um jogador: " + mensagem);
                 saidaJogador2.writeObject(mensagem);
-                saidaJogador2.flush();
             } catch (Exception ex) {
-                System.out.println("Erro na comunicação com um dos jogadores. Finalizando conexão.");
                 ex.printStackTrace();
                 break;
             }
