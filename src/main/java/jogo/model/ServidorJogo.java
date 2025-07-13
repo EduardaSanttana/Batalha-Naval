@@ -21,7 +21,7 @@ public class ServidorJogo {
         String nomeJogador1 = (String) entradaJogador1.readObject();
         
         System.out.println("Jogador 1 conectado: " + nomeJogador1 + " (" + jogador1.getInetAddress() + ":" + jogador1.getPort() + ")");
-        saidaJogador1.writeObject("true"); 
+        saidaJogador1.writeObject(Boolean.TRUE);
 
         System.out.println("Esperando por conexão (Jogador 2)...");
         Socket jogador2 = servidor.accept();
@@ -31,7 +31,7 @@ public class ServidorJogo {
         ObjectInputStream entradaJogador2 = new ObjectInputStream(jogador2.getInputStream());
         String nomeJogador2 = (String) entradaJogador2.readObject();
         System.out.println("Jogador 2 conectado: " + nomeJogador2 + " (" + jogador2.getInetAddress() + ":" + jogador2.getPort() + ")");
-        saidaJogador2.writeObject("false");
+        saidaJogador2.writeObject(Boolean.FALSE);
 
         System.out.println("Jogo iniciado entre " + nomeJogador1 + " e " + nomeJogador2 + ".");
 
