@@ -1,9 +1,11 @@
 package jogo.view;
 
-import javax.swing.*;
-import java.awt.*;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
+import jogo.model.GerenciadorJogadas;
 
 public class BatalhaNaval extends JFrame {
 
@@ -15,7 +17,10 @@ public class BatalhaNaval extends JFrame {
     private JTextArea logArea;
     private JButton[][] botoesTabuleiro = new JButton[10][10];
 
-    public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida, String[][] tabuleiro) {
+    private int[][] tabuleiroJogador = new int[10][10]; 
+    private int naviosRestantes = 5; 
+
+    public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida) {
         this.nome = nome;
         this.suaVez = suaVez;
         this.entrada = entrada;
@@ -24,33 +29,26 @@ public class BatalhaNaval extends JFrame {
         setTitle("Batalha Naval - Jogador " + nome);
         setSize(600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        criarInterface();
-        mostrarNavios(tabuleiro); // ⬅️ Mostra os navios do jogador
 
+        criarInterface();
+        posicionarNavios(); 
         setLocationRelativeTo(null);
         setVisible(true);
-
-        jogar();
     }
 
     private void criarInterface() {
         setLayout(new BorderLayout());
-
         logArea = new JTextArea(5, 30);
         logArea.setEditable(false);
         JScrollPane scroll = new JScrollPane(logArea);
 
         JPanel painelTabuleiro = new JPanel(new GridLayout(10, 10));
-
-        for (int linha = 0; linha < 10; linha++) {
-            for (int col = 0; col < 10; col++) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
                 JButton btn = new JButton();
-                btn.setBackground(new Color(70, 130, 180)); // azul
+                btn.setBackground(new Color(70, 130, 180));
                 btn.setMargin(new Insets(0, 0, 0, 0));
-                final int l = linha;
-                final int c = col;
-                btn.addActionListener(e -> jogarPosicao(l, c));
-                botoesTabuleiro[linha][col] = btn;
+                botoesTabuleiro[i][j] = btn;
                 painelTabuleiro.add(btn);
             }
         }
@@ -59,20 +57,57 @@ public class BatalhaNaval extends JFrame {
         add(painelTabuleiro, BorderLayout.CENTER);
     }
 
+    private void posicionarNavios() {
+        logArea.append("?Posicione " + naviosRestantes + " navios clicando no tabuleiro.\n");
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                JButton btn = botoesTabuleiro[i][j];
+                final int l = i, c = j;
+     
+                for (ActionListener al : btn.getActionListeners()) {
+                    btn.removeActionListener(al);
+                }
+                btn.addActionListener(e -> {
+                    if (tabuleiroJogador[l][c] == 0 && naviosRestantes > 0) {
+                        tabuleiroJogador[l][c] = 1;
+                        btn.setBackground(Color.GRAY);
+                        naviosRestantes--;
+                        logArea.append("Navio posicionado em: " + l + "," + c + "\n");
+                        if (naviosRestantes == 0) {
+                            logArea.append("Todos os navios posicionados!\n");
+                            iniciarJogo();
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    private void iniciarJogo() {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                JButton btn = botoesTabuleiro[i][j];
+                for (ActionListener al : btn.getActionListeners()) {
+                    btn.removeActionListener(al);
+                }
+                final int l = i, c = j;
+                btn.addActionListener(e -> jogarPosicao(l, c));
+            }
+        }
+        jogar(); 
+        logArea.append("Começando o jogo! Sua vez? " + suaVez + "\n");
+    }
+
     private void jogarPosicao(int linha, int coluna) {
         if (!suaVez) {
             JOptionPane.showMessageDialog(this, "Ainda não é sua vez!");
             return;
         }
-
         String jogada = linha + "," + coluna;
         try {
             saida.writeObject(jogada);
             saida.flush();
-
-            botoesTabuleiro[linha][coluna].setBackground(new Color(176, 224, 230)); // azul claro
             botoesTabuleiro[linha][coluna].setEnabled(false);
-
             suaVez = false;
         } catch (Exception ex) {
             logArea.append("Erro ao enviar jogada: " + ex.getMessage() + "\n");
@@ -84,45 +119,60 @@ public class BatalhaNaval extends JFrame {
             try {
                 while (true) {
                     String mensagem = (String) entrada.readObject();
-
-                    SwingUtilities.invokeLater(() -> {
-                        String[] partes = mensagem.split(",");
-                        if (partes.length == 2) {
-                            try {
-                                int linha = Integer.parseInt(partes[0]);
-                                int coluna = Integer.parseInt(partes[1]);
-
-                                botoesTabuleiro[linha][coluna].setBackground(new Color(255, 140, 0)); // laranja
-                                botoesTabuleiro[linha][coluna].setEnabled(false);
-                            } catch (NumberFormatException e) {
-                                // ignora
-                            }
-                        }
-
-                        suaVez = true;
-                    });
+                    SwingUtilities.invokeLater(() -> tratarJogadaRecebida(mensagem));
                 }
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
                     logArea.append("Conexão encerrada.\n");
-                    for (int i = 0; i < 10; i++) {
-                        for (int j = 0; j < 10; j++) {
-                            botoesTabuleiro[i][j].setEnabled(false);
-                        }
-                    }
+                    disableBoard();
                 });
             }
         });
         threadEscuta.start();
     }
 
-    // ✅ NOVO: pinta de cinza onde há navios
-    public void mostrarNavios(String[][] tabuleiro) {
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                if ("N".equals(tabuleiro[i][j])) {
-                    botoesTabuleiro[i][j].setBackground(Color.GRAY);
+    private void tratarJogadaRecebida(String mensagem) {
+        String[] partes = mensagem.split(",");
+        if (partes.length == 2) {
+            try {
+                int linha = Integer.parseInt(partes[0]);
+                int coluna = Integer.parseInt(partes[1]);
+
+                JButton btn = botoesTabuleiro[linha][coluna];
+                if (tabuleiroJogador[linha][coluna] == 1) {
+                    tabuleiroJogador[linha][coluna] = -1;
+                    btn.setBackground(Color.RED);
+                    logArea.append("Seu navio foi atingido em " + linha + "," + coluna + "\n");
+                    if (verificaDerrota()) {
+                        logArea.append("Todos os navios destruídos. Você perdeu!\n");
+                        JOptionPane.showMessageDialog(this, "Você perdeu!");
+                        System.exit(0);
+                    }
+                } else {
+                    btn.setBackground(Color.WHITE);
+                    logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
                 }
+
+                suaVez = true;
+            } catch (NumberFormatException e) {
+                logArea.append("Mensagem inválida recebida: " + mensagem + "\n");
+            }
+        }
+    }
+
+    private boolean verificaDerrota() {
+        for (int[] linha : tabuleiroJogador) {
+            for (int cell : linha) {
+                if (cell == 1) return false;
+            }
+        }
+        return true;
+    }
+
+    private void disableBoard() {
+        for (JButton[] linha : botoesTabuleiro) {
+            for (JButton btn : linha) {
+                btn.setEnabled(false);
             }
         }
     }
