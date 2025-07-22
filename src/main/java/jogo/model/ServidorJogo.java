@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ServidorJogo {
+
     public static void main(String[] args) throws Exception {
 
         ServerSocket servidor = new ServerSocket(Config.getPorta(), 2, InetAddress.getByName(Config.getIp()));
@@ -16,18 +17,18 @@ public class ServidorJogo {
         Socket jogador1 = servidor.accept();
         ObjectOutputStream saidaJogador1 = new ObjectOutputStream(jogador1.getOutputStream());
         saidaJogador1.flush();
-        
+
         ObjectInputStream entradaJogador1 = new ObjectInputStream(jogador1.getInputStream());
         String nomeJogador1 = (String) entradaJogador1.readObject();
-        
+
         System.out.println("Jogador 1 conectado: " + nomeJogador1 + " (" + jogador1.getInetAddress() + ":" + jogador1.getPort() + ")");
-        saidaJogador1.writeObject("true"); 
+        saidaJogador1.writeObject("true");
 
         System.out.println("Esperando por conexão (Jogador 2)...");
         Socket jogador2 = servidor.accept();
         ObjectOutputStream saidaJogador2 = new ObjectOutputStream(jogador2.getOutputStream());
         saidaJogador2.flush();
-        
+
         ObjectInputStream entradaJogador2 = new ObjectInputStream(jogador2.getInputStream());
         String nomeJogador2 = (String) entradaJogador2.readObject();
         System.out.println("Jogador 2 conectado: " + nomeJogador2 + " (" + jogador2.getInetAddress() + ":" + jogador2.getPort() + ")");

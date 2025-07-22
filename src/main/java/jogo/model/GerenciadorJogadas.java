@@ -4,7 +4,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 public class GerenciadorJogadas implements Runnable {
-    
+
     private ObjectInputStream entradaJogador1;
     private ObjectOutputStream saidaJogador2;
 

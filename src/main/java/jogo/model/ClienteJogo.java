@@ -8,6 +8,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class ClienteJogo {
+
     public static void main(String[] args) throws Exception {
         String nome = JOptionPane.showInputDialog(null, "Digite seu nome:", "Entrada", JOptionPane.PLAIN_MESSAGE);
         if (nome == null || nome.trim().isEmpty()) {

@@ -9,6 +9,9 @@ import jogo.model.GerenciadorJogadas;
 
 public class BatalhaNaval extends JFrame {
 
+    private static final String MSG_FIM = "FIM";
+    private volatile boolean jogoEncerrado = false;
+
     private String nome;
     private boolean suaVez;
     private ObjectInputStream entrada;
@@ -17,8 +20,8 @@ public class BatalhaNaval extends JFrame {
     private JTextArea logArea;
     private JButton[][] botoesTabuleiro = new JButton[10][10];
 
-    private int[][] tabuleiroJogador = new int[10][10]; 
-    private int naviosRestantes = 5; 
+    private int[][] tabuleiroJogador = new int[10][10];
+    private int naviosRestantes = 5;
 
     public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida) {
         this.nome = nome;
@@ -31,7 +34,7 @@ public class BatalhaNaval extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         criarInterface();
-        posicionarNavios(); 
+        posicionarNavios();
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -58,12 +61,12 @@ public class BatalhaNaval extends JFrame {
     }
 
     private void posicionarNavios() {
-        logArea.append("?Posicione " + naviosRestantes + " navios clicando no tabuleiro.\n");
+        logArea.append("Posicione " + naviosRestantes + " navios clicando no tabuleiro.\n");
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 JButton btn = botoesTabuleiro[i][j];
                 final int l = i, c = j;
-     
+
                 for (ActionListener al : btn.getActionListeners()) {
                     btn.removeActionListener(al);
                 }
@@ -94,11 +97,15 @@ public class BatalhaNaval extends JFrame {
                 btn.addActionListener(e -> jogarPosicao(l, c));
             }
         }
-        jogar(); 
+        jogar();
         logArea.append("Começando o jogo! Sua vez? " + suaVez + "\n");
     }
 
     private void jogarPosicao(int linha, int coluna) {
+        if (jogoEncerrado) {
+            return;
+        }
+
         if (!suaVez) {
             JOptionPane.showMessageDialog(this, "Ainda não é sua vez!");
             return;
@@ -119,8 +126,20 @@ public class BatalhaNaval extends JFrame {
             try {
                 while (true) {
                     String mensagem = (String) entrada.readObject();
-                    SwingUtilities.invokeLater(() -> tratarJogadaRecebida(mensagem));
+                    SwingUtilities.invokeLater(() -> {
+                        if (MSG_FIM.equals(mensagem)) {
+                            if (!jogoEncerrado) {
+                                jogoEncerrado = true;
+                                logArea.append("Oponente foi derrotado. Você venceu!\n");
+                                JOptionPane.showMessageDialog(BatalhaNaval.this, "Você venceu!");
+                                disableBoard();
+                            }
+                        } else {
+                            tratarJogadaRecebida(mensagem);
+                        }
+                    });
                 }
+
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
                     logArea.append("Conexão encerrada.\n");
@@ -146,8 +165,12 @@ public class BatalhaNaval extends JFrame {
                     if (verificaDerrota()) {
                         logArea.append("Todos os navios destruídos. Você perdeu!\n");
                         JOptionPane.showMessageDialog(this, "Você perdeu!");
-                        System.exit(0);
+                        enviarFimAoOponente();
+                        jogoEncerrado = true;
+                        disableBoard();
+                        return;
                     }
+
                 } else {
                     btn.setBackground(Color.WHITE);
                     logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
@@ -160,10 +183,21 @@ public class BatalhaNaval extends JFrame {
         }
     }
 
+    private void enviarFimAoOponente() {
+        try {
+            saida.writeObject(MSG_FIM);
+            saida.flush();
+        } catch (Exception ex) {
+            logArea.append("Erro ao avisar oponente: " + ex.getMessage() + "\n");
+        }
+    }
+
     private boolean verificaDerrota() {
         for (int[] linha : tabuleiroJogador) {
             for (int cell : linha) {
-                if (cell == 1) return false;
+                if (cell == 1) {
+                    return false;
+                }
             }
         }
         return true;
