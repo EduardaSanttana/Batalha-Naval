@@ -1,4 +1,4 @@
-package jogo.model;
+package jogo;
 
 import java.io.File;
 import javax.xml.parsers.DocumentBuilder;

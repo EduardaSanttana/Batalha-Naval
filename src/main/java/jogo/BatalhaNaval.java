@@ -1,11 +1,10 @@
-package jogo.view;
+package jogo;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import jogo.model.GerenciadorJogadas;
 
 public class BatalhaNaval extends JFrame {
 

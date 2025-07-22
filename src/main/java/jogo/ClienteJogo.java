@@ -1,6 +1,6 @@
-package jogo.model;
+package jogo;
 
-import jogo.view.BatalhaNaval;
+import jogo.BatalhaNaval;
 
 import javax.swing.*;
 import java.io.ObjectInputStream;

@@ -1,5 +1,7 @@
-package jogo.model;
+package jogo;
 
+import jogo.GerenciadorJogadas;
+import jogo.Config;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
