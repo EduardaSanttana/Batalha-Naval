@@ -1,12 +1,3 @@
 <config>
-<<<<<<< HEAD
-    <!--
-    <servidor ip="192.168.0.3" porta="5000"/>
-        -->
-
-        
-    <servidor ip="127.0.0.1" porta="5000"/>        
-=======
-    <servidor ip="127.0.0.1" porta="5000"/>
->>>>>>> 303e6c94933ea36763c2bbc14b5a9d1b3e988ce9
+    <servidor ip="192.168.10.21" porta="5000"/>
 </config>

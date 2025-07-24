@@ -1,14 +1,11 @@
 package jogo;
 
+import jogo.Som;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-<<<<<<< HEAD
-import jogo.Som;
-=======
->>>>>>> 303e6c94933ea36763c2bbc14b5a9d1b3e988ce9
 
 public class BatalhaNaval extends JFrame {
 
@@ -77,12 +74,9 @@ public class BatalhaNaval extends JFrame {
                     if (tabuleiroJogador[l][c] == 0 && naviosRestantes > 0) {
                         tabuleiroJogador[l][c] = 1;
                         btn.setBackground(Color.GRAY);
-<<<<<<< HEAD
 
                         Som.tocarColocar();
 
-=======
->>>>>>> 303e6c94933ea36763c2bbc14b5a9d1b3e988ce9
                         naviosRestantes--;
                         logArea.append("Navio posicionado em: " + l + "," + c + "\n");
                         if (naviosRestantes == 0) {
@@ -171,10 +165,8 @@ public class BatalhaNaval extends JFrame {
                     tabuleiroJogador[linha][coluna] = -1;
                     btn.setBackground(Color.RED);
                     logArea.append("Seu navio foi atingido em " + linha + "," + coluna + "\n");
-<<<<<<< HEAD
                     Som.tocarAcerto();
-=======
->>>>>>> 303e6c94933ea36763c2bbc14b5a9d1b3e988ce9
+
                     if (verificaDerrota()) {
                         logArea.append("Todos os navios destruídos. Você perdeu!\n");
                         JOptionPane.showMessageDialog(this, "Você perdeu!");
@@ -187,10 +179,8 @@ public class BatalhaNaval extends JFrame {
                 } else {
                     btn.setBackground(Color.WHITE);
                     logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
-<<<<<<< HEAD
                     Som.tocarErro();
-=======
->>>>>>> 303e6c94933ea36763c2bbc14b5a9d1b3e988ce9
+
                 }
 
                 suaVez = true;
