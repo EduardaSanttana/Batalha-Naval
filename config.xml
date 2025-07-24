@@ -1,0 +1,8 @@
+<config>
+    <!--
+    <servidor ip="192.168.0.3" porta="5000"/>
+        -->
+
+        
+    <servidor ip="127.0.0.1" porta="5000"/>        
+</config>
