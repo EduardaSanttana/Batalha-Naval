@@ -1,6 +1,7 @@
 package jogo;
 
 import jogo.Som;
+import jogo.EscreverXML;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import javax.swing.*;
@@ -16,6 +17,7 @@ public class BatalhaNaval extends JFrame {
     private volatile boolean jogoEncerrado = false;
 
     private String nome;
+    private String nomeAdversario;
     private boolean suaVez;
     private ObjectInputStream entrada;
     private ObjectOutputStream saida;
@@ -30,7 +32,11 @@ public class BatalhaNaval extends JFrame {
     private JButton btnReiniciar;
     private JButton btnDesistir;
 
-    public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida) {
+    private String ultimaJogada = "";
+
+    public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida, String nomeAdversario) {
+
+        this.nomeAdversario = nomeAdversario;
         this.nome = nome;
         this.suaVez = suaVez;
         this.entrada = entrada;
@@ -54,7 +60,7 @@ public class BatalhaNaval extends JFrame {
         JPanel painelControles = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
 
         btnIniciar = new JButton("Iniciar Jogo");
-        btnIniciar.setEnabled(false); 
+        btnIniciar.setEnabled(false);
         btnIniciar.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -75,7 +81,7 @@ public class BatalhaNaval extends JFrame {
                 int confirm = JOptionPane.showConfirmDialog(BatalhaNaval.this,
                         "Tem certeza que deseja reiniciar o jogo?", "Reiniciar Jogo", JOptionPane.YES_NO_OPTION);
                 if (confirm == JOptionPane.YES_OPTION) {
-                    suaVez = false; 
+                    suaVez = false;
                     enviarReiniciarAoOponente();
                     resetarEstadoJogo(false);
                     btnIniciar.setEnabled(false);
@@ -134,7 +140,6 @@ public class BatalhaNaval extends JFrame {
                 JButton btn = botoesTabuleiro[i][j];
                 final int l = i, c = j;
 
-
                 for (ActionListener al : btn.getActionListeners()) {
                     btn.removeActionListener(al);
                 }
@@ -163,6 +168,8 @@ public class BatalhaNaval extends JFrame {
 
     private void iniciarJogo() {
         jogoEncerrado = false;
+
+        EscreverXML.iniciarPartida(nome, nomeAdversario);
 
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -195,6 +202,12 @@ public class BatalhaNaval extends JFrame {
             saida.writeObject(jogada);
             saida.flush();
             botoesTabuleiro[linha][coluna].setEnabled(false);
+
+            char letra = (char) ('A' + linha);
+            String coordenada = letra + "-" + (coluna + 1);
+            ultimaJogada = coordenada;
+            EscreverXML.registrarJogada(1, coordenada, "enviada");
+
             suaVez = false;
         } catch (Exception ex) {
             logArea.append("Erro ao enviar jogada: " + ex.getMessage() + "\n");
@@ -214,6 +227,7 @@ public class BatalhaNaval extends JFrame {
                                 if (MSG_FIM.equals(mensagem)) {
                                     if (!jogoEncerrado) {
                                         jogoEncerrado = true;
+                                        EscreverXML.registrarResultado(nome, ultimaJogada);
                                         logArea.append("Oponente foi derrotado. Você venceu!\n");
                                         JOptionPane.showMessageDialog(BatalhaNaval.this, "Você venceu!");
                                         disableBoard();
@@ -222,7 +236,7 @@ public class BatalhaNaval extends JFrame {
                                         btnIniciar.setEnabled(false);
                                     }
                                 } else if (MSG_REINICIAR.equals(mensagem)) {
-                                    suaVez = true; 
+                                    suaVez = true;
                                     resetarEstadoJogo(true);
                                     logArea.append("O jogo foi reiniciado pelo adversário. Sua vez de jogar!\n");
                                     btnIniciar.setEnabled(false);
@@ -267,15 +281,20 @@ public class BatalhaNaval extends JFrame {
                 int linha = Integer.parseInt(partes[0]);
                 int coluna = Integer.parseInt(partes[1]);
 
+                char letra = (char) ('A' + linha);
+                String coordenada = letra + "-" + (coluna + 1);
+
                 JButton btn = botoesTabuleiro[linha][coluna];
                 if (tabuleiroJogador[linha][coluna] == 1) {
                     tabuleiroJogador[linha][coluna] = -1;
                     btn.setBackground(Color.RED);
                     logArea.append("Seu navio foi atingido em " + linha + "," + coluna + "\n");
                     Som.tocarAcerto();
+                    EscreverXML.registrarJogada(2, coordenada, "acerto");
 
                     if (verificaDerrota()) {
                         logArea.append("Todos os navios destruídos. Você perdeu!\n");
+                        EscreverXML.registrarResultado(nomeAdversario, coordenada);
                         JOptionPane.showMessageDialog(this, "Você perdeu!");
                         enviarFimAoOponente();
                         jogoEncerrado = true;
@@ -290,7 +309,7 @@ public class BatalhaNaval extends JFrame {
                     btn.setBackground(Color.WHITE);
                     logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
                     Som.tocarErro();
-
+                    EscreverXML.registrarJogada(2, coordenada, "erro");
                 }
 
                 suaVez = true;

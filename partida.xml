@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<partida>
+    <jogador1 nome="princiipe bruno"/>
+    <jogador2 nome="barata eduarda"/>
+    <jogadas>
+        <jogada coordenada="A-10" jogador="2" resultado="erro"/>
+        <jogada coordenada="A-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="B-10" jogador="2" resultado="erro"/>
+        <jogada coordenada="B-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="C-10" jogador="2" resultado="erro"/>
+        <jogada coordenada="C-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="D-10" jogador="2" resultado="erro"/>
+        <jogada coordenada="D-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="E-10" jogador="2" resultado="erro"/>
+        <jogada coordenada="E-10" jogador="1" resultado="enviada"/>
+    </jogadas>
+    <resultado ultimaJogada="E-10" vencedor="princiipe bruno"/>
+</partida>

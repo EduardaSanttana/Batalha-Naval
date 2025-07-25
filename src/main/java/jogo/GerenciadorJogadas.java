@@ -2,6 +2,7 @@ package jogo;
 
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import jogo.EscreverXML;
 
 public class GerenciadorJogadas implements Runnable {
 

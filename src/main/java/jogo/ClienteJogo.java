@@ -27,11 +27,14 @@ public class ClienteJogo {
         String mensagem = (String) entrada.readObject();
         boolean suaVez = Boolean.parseBoolean(mensagem);
 
+        String nomeAdversario = (String) entrada.readObject();
+
         System.out.println("Jogador: " + nome);
         System.out.println("Sua vez de jogar? " + suaVez);
+        System.out.println("Nome do adversário: " + nomeAdversario);
 
         SwingUtilities.invokeLater(() -> {
-            new BatalhaNaval(nome, suaVez, entrada, saida);
+            BatalhaNaval jogo = new BatalhaNaval(nome, suaVez, entrada, saida, nomeAdversario);
         });
     }
 }
