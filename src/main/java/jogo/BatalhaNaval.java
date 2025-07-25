@@ -370,7 +370,10 @@ public class BatalhaNaval extends JFrame {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 tabuleiroJogador[i][j] = 0;
-                botoesTabuleiro[i][j].setEnabled(true);
+                JButton btn = botoesTabuleiro[i][j];
+                btn.setEnabled(true);
+                btn.setIcon(null);
+                btn.setBackground(new Color(70, 130, 180));
             }
         }
         naviosRestantes = 5;

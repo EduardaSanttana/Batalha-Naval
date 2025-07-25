@@ -1,16 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <partida>
-    <jogador1 nome="luiz"/>
-    <jogador2 nome="duda"/>
+    <jogador1 nome="duda"/>
+    <jogador2 nome=""/>
     <jogadas>
-        <jogada coordenada="B-4" jogador="2" resultado="erro"/>
-        <jogada coordenada="B-7" jogador="1" resultado="enviada"/>
-        <jogada coordenada="D-4" jogador="2" resultado="erro"/>
-        <jogada coordenada="D-9" jogador="1" resultado="enviada"/>
-        <jogada coordenada="I-8" jogador="2" resultado="erro"/>
-        <jogada coordenada="G-2" jogador="1" resultado="enviada"/>
-        <jogada coordenada="G-6" jogador="2" resultado="erro"/>
-        <jogada coordenada="G-3" jogador="1" resultado="enviada"/>
-        <jogada coordenada="C-3" jogador="2" resultado="acerto"/>
+        <jogada coordenada="C-8" jogador="1" resultado="enviada"/>
+        <jogada coordenada="F-6" jogador="2" resultado="erro"/>
+        <jogada coordenada="H-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="F-8" jogador="2" resultado="acerto"/>
     </jogadas>
 </partida>
