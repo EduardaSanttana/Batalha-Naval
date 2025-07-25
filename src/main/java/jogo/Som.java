@@ -27,7 +27,7 @@ public class Som {
         tocar("/som/erro.wav");
     }
 
-    public static void tocarColocar() {
-        tocar("/som/colocar.wav"); 
-    }
+    //public static void tocarColocar() {
+        //tocar("/som/colocar.wav"); 
+    //}
 }

@@ -9,7 +9,7 @@ import java.io.File;
 
 public class EscreverXML {
 
-    private static final String CAMINHO_ARQUIVO = "partida.xml";
+    private static final String caminhoArquivo = "historico.xml";
     private static Document doc;
     private static Element raiz;
     private static Element jogadas;
@@ -84,7 +84,7 @@ public class EscreverXML {
         transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
 
         DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(new File(CAMINHO_ARQUIVO));
+        StreamResult result = new StreamResult(new File(caminhoArquivo));
         transformer.transform(source, result);
     }
 }
