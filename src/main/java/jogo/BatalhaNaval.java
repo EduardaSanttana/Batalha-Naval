@@ -83,7 +83,7 @@ public class BatalhaNaval extends JFrame {
             btnIniciar.setEnabled(false);
             btnReiniciar.setEnabled(true);
             btnDesistir.setEnabled(true);
-            //logArea.append("Jogo iniciado! Sua vez? " + suaVez + "\n");
+            // logArea.append("Jogo iniciado! Sua vez? " + suaVez + "\n");
         });
         painelControles.add(btnIniciar);
 
@@ -107,7 +107,7 @@ public class BatalhaNaval extends JFrame {
             int confirm = JOptionPane.showConfirmDialog(BatalhaNaval.this,
                     "Tem certeza que deseja desistir do jogo?", "Desistir do Jogo", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                //logArea.append("Você desistiu do jogo.\n");
+                // logArea.append("Você desistiu do jogo.\n");
                 JOptionPane.showMessageDialog(BatalhaNaval.this, "Você desistiu e perdeu!");
                 dispose();
                 enviarDesistenciaAoOponente();
@@ -158,7 +158,7 @@ public class BatalhaNaval extends JFrame {
 
                         // Som.tocarColocar();
                         naviosRestantes--;
-                        //logArea.append("Navio posicionado em: " + l + "," + c + "\n");
+                        // logArea.append("Navio posicionado em: " + l + "," + c + "\n");
                         if (naviosRestantes == 0) {
                             logArea.append("Todos os navios posicionados!\n");
                             btnIniciar.setEnabled(true);
@@ -233,7 +233,7 @@ public class BatalhaNaval extends JFrame {
                             case "REINICIAR":
                                 suaVez = true;
                                 resetarEstadoJogo(true);
-                                //logArea.append("O jogo foi reiniciado pelo adversário. Sua vez de jogar!\n");
+                                // logArea.append("O jogo foi reiniciado pelo adversário. Sua vez de jogar!\n");
                                 btnIniciar.setEnabled(false);
                                 btnReiniciar.setEnabled(true);
                                 btnDesistir.setEnabled(true);
@@ -257,7 +257,7 @@ public class BatalhaNaval extends JFrame {
                 }
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
-                    //logArea.append("Conexão encerrada.\n");
+                    // logArea.append("Conexão encerrada.\n");
                     disableBoard();
                     btnReiniciar.setEnabled(false);
                     btnDesistir.setEnabled(false);
@@ -308,7 +308,7 @@ public class BatalhaNaval extends JFrame {
 
                 } else {
                     btn.setIcon(iconeErro);
-                    //logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
+                    // logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
                     Som.tocarErro();
                     EscreverXML.registrarJogada(2, coordenada, "erro");
                 }
