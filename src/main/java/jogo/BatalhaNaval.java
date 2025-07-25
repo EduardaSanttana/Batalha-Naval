@@ -10,6 +10,9 @@ import java.awt.event.*;
 public class BatalhaNaval extends JFrame {
 
     private static final String MSG_FIM = "FIM";
+    private static final String MSG_REINICIAR = "REINICIAR";
+    private static final String MSG_DESISTENCIA = "DESISTENCIA";
+
     private volatile boolean jogoEncerrado = false;
 
     private String nome;
@@ -22,6 +25,10 @@ public class BatalhaNaval extends JFrame {
 
     private int[][] tabuleiroJogador = new int[10][10];
     private int naviosRestantes = 5;
+
+    private JButton btnIniciar;
+    private JButton btnReiniciar;
+    private JButton btnDesistir;
 
     public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida) {
         this.nome = nome;
@@ -37,10 +44,70 @@ public class BatalhaNaval extends JFrame {
         posicionarNavios();
         setLocationRelativeTo(null);
         setVisible(true);
+
+        iniciarThreadEscuta();
     }
 
     private void criarInterface() {
         setLayout(new BorderLayout());
+
+        JPanel painelControles = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+
+        btnIniciar = new JButton("Iniciar Jogo");
+        btnIniciar.setEnabled(false); 
+        btnIniciar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                iniciarJogo();
+                btnIniciar.setEnabled(false);
+                btnReiniciar.setEnabled(true);
+                btnDesistir.setEnabled(true);
+                logArea.append("Jogo iniciado! Sua vez? " + suaVez + "\n");
+            }
+        });
+        painelControles.add(btnIniciar);
+
+        btnReiniciar = new JButton("Reiniciar Jogo");
+        btnReiniciar.setEnabled(false);
+        btnReiniciar.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(BatalhaNaval.this,
+                        "Tem certeza que deseja reiniciar o jogo?", "Reiniciar Jogo", JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    suaVez = false; 
+                    enviarReiniciarAoOponente();
+                    resetarEstadoJogo(false);
+                    btnIniciar.setEnabled(false);
+                }
+            }
+        });
+        painelControles.add(btnReiniciar);
+
+        btnDesistir = new JButton("Desistir");
+        btnDesistir.setEnabled(false);
+        btnDesistir.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int confirm = JOptionPane.showConfirmDialog(BatalhaNaval.this,
+                        "Tem certeza que deseja desistir do jogo? Você perderá!", "Desistir do Jogo",
+                        JOptionPane.YES_NO_OPTION);
+                if (confirm == JOptionPane.YES_OPTION) {
+                    logArea.append("Você desistiu do jogo.\n");
+                    JOptionPane.showMessageDialog(BatalhaNaval.this, "Você desistiu e perdeu!");
+                    enviarDesistenciaAoOponente();
+                    jogoEncerrado = true;
+                    disableBoard();
+                    btnReiniciar.setEnabled(false);
+                    btnDesistir.setEnabled(false);
+                    btnIniciar.setEnabled(false);
+                }
+            }
+        });
+        painelControles.add(btnDesistir);
+
+        add(painelControles, BorderLayout.NORTH);
+
         logArea = new JTextArea(5, 30);
         logArea.setEditable(false);
         JScrollPane scroll = new JScrollPane(logArea);
@@ -67,21 +134,26 @@ public class BatalhaNaval extends JFrame {
                 JButton btn = botoesTabuleiro[i][j];
                 final int l = i, c = j;
 
+
                 for (ActionListener al : btn.getActionListeners()) {
                     btn.removeActionListener(al);
                 }
-                btn.addActionListener(e -> {
-                    if (tabuleiroJogador[l][c] == 0 && naviosRestantes > 0) {
-                        tabuleiroJogador[l][c] = 1;
-                        btn.setBackground(Color.GRAY);
 
-                        Som.tocarColocar();
+                btn.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (tabuleiroJogador[l][c] == 0 && naviosRestantes > 0) {
+                            tabuleiroJogador[l][c] = 1;
+                            btn.setBackground(Color.GRAY);
 
-                        naviosRestantes--;
-                        logArea.append("Navio posicionado em: " + l + "," + c + "\n");
-                        if (naviosRestantes == 0) {
-                            logArea.append("Todos os navios posicionados!\n");
-                            iniciarJogo();
+                            Som.tocarColocar();
+
+                            naviosRestantes--;
+                            logArea.append("Navio posicionado em: " + l + "," + c + "\n");
+                            if (naviosRestantes == 0) {
+                                logArea.append("Todos os navios posicionados!\n");
+                                btnIniciar.setEnabled(true);
+                            }
                         }
                     }
                 });
@@ -90,6 +162,8 @@ public class BatalhaNaval extends JFrame {
     }
 
     private void iniciarJogo() {
+        jogoEncerrado = false;
+
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
                 JButton btn = botoesTabuleiro[i][j];
@@ -97,11 +171,14 @@ public class BatalhaNaval extends JFrame {
                     btn.removeActionListener(al);
                 }
                 final int l = i, c = j;
-                btn.addActionListener(e -> jogarPosicao(l, c));
+                btn.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        jogarPosicao(l, c);
+                    }
+                });
             }
         }
-        jogar();
-        logArea.append("Começando o jogo! Sua vez? " + suaVez + "\n");
     }
 
     private void jogarPosicao(int linha, int coluna) {
@@ -124,30 +201,60 @@ public class BatalhaNaval extends JFrame {
         }
     }
 
-    private void jogar() {
-        Thread threadEscuta = new Thread(() -> {
-            try {
-                while (true) {
-                    String mensagem = (String) entrada.readObject();
-                    SwingUtilities.invokeLater(() -> {
-                        if (MSG_FIM.equals(mensagem)) {
-                            if (!jogoEncerrado) {
-                                jogoEncerrado = true;
-                                logArea.append("Oponente foi derrotado. Você venceu!\n");
-                                JOptionPane.showMessageDialog(BatalhaNaval.this, "Você venceu!");
-                                disableBoard();
+    private void iniciarThreadEscuta() {
+        Thread threadEscuta = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (true) {
+                        String mensagem = (String) entrada.readObject();
+                        SwingUtilities.invokeLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (MSG_FIM.equals(mensagem)) {
+                                    if (!jogoEncerrado) {
+                                        jogoEncerrado = true;
+                                        logArea.append("Oponente foi derrotado. Você venceu!\n");
+                                        JOptionPane.showMessageDialog(BatalhaNaval.this, "Você venceu!");
+                                        disableBoard();
+                                        btnReiniciar.setEnabled(true);
+                                        btnDesistir.setEnabled(true);
+                                        btnIniciar.setEnabled(false);
+                                    }
+                                } else if (MSG_REINICIAR.equals(mensagem)) {
+                                    suaVez = true; 
+                                    resetarEstadoJogo(true);
+                                    logArea.append("O jogo foi reiniciado pelo adversário. Sua vez de jogar!\n");
+                                    btnIniciar.setEnabled(false);
+                                    btnReiniciar.setEnabled(true);
+                                    btnDesistir.setEnabled(true);
+                                } else if (MSG_DESISTENCIA.equals(mensagem)) {
+                                    jogoEncerrado = true;
+                                    logArea.append("Oponente desistiu. Você venceu por desistência!\n");
+                                    JOptionPane.showMessageDialog(BatalhaNaval.this,
+                                            "O oponente desistiu. Você venceu por desistência!");
+                                    disableBoard();
+                                    btnReiniciar.setEnabled(true);
+                                    btnDesistir.setEnabled(true);
+                                    btnIniciar.setEnabled(false);
+                                } else {
+                                    tratarJogadaRecebida(mensagem);
+                                }
                             }
-                        } else {
-                            tratarJogadaRecebida(mensagem);
+                        });
+                    }
+                } catch (Exception e) {
+                    SwingUtilities.invokeLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            logArea.append("Conexão encerrada.\n");
+                            disableBoard();
+                            btnReiniciar.setEnabled(false);
+                            btnDesistir.setEnabled(false);
+                            btnIniciar.setEnabled(false);
                         }
                     });
                 }
-
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> {
-                    logArea.append("Conexão encerrada.\n");
-                    disableBoard();
-                });
             }
         });
         threadEscuta.start();
@@ -173,6 +280,9 @@ public class BatalhaNaval extends JFrame {
                         enviarFimAoOponente();
                         jogoEncerrado = true;
                         disableBoard();
+                        btnReiniciar.setEnabled(true);
+                        btnDesistir.setEnabled(true);
+                        btnIniciar.setEnabled(false);
                         return;
                     }
 
@@ -199,6 +309,24 @@ public class BatalhaNaval extends JFrame {
         }
     }
 
+    private void enviarReiniciarAoOponente() {
+        try {
+            saida.writeObject(MSG_REINICIAR);
+            saida.flush();
+        } catch (Exception ex) {
+            logArea.append("Erro ao enviar reinício: " + ex.getMessage() + "\n");
+        }
+    }
+
+    private void enviarDesistenciaAoOponente() {
+        try {
+            saida.writeObject(MSG_DESISTENCIA);
+            saida.flush();
+        } catch (Exception ex) {
+            logArea.append("Erro ao enviar desistência: " + ex.getMessage() + "\n");
+        }
+    }
+
     private boolean verificaDerrota() {
         for (int[] linha : tabuleiroJogador) {
             for (int cell : linha) {
@@ -216,5 +344,21 @@ public class BatalhaNaval extends JFrame {
                 btn.setEnabled(false);
             }
         }
+    }
+
+    private void resetarEstadoJogo(boolean suaVezInicial) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                tabuleiroJogador[i][j] = 0;
+                botoesTabuleiro[i][j].setBackground(new Color(70, 130, 180));
+                botoesTabuleiro[i][j].setEnabled(true);
+            }
+        }
+        naviosRestantes = 5;
+        jogoEncerrado = false;
+        suaVez = suaVezInicial;
+        logArea.setText("");
+        logArea.append("Jogo reiniciado! Posicione seus navios novamente.\n");
+        posicionarNavios();
     }
 }
