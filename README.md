@@ -1,4 +1,4 @@
-# Jogo de Batalha Naval em Rede (Cliente-Servidor)
+# Jogo de Batalha Naval em Rede
 
 Este projeto implementa um jogo de **Batalha Naval** que funciona em rede, utilizando uma arquitetura cliente-servidor para comunicação entre as máquinas. O jogo permite que dois jogadores se conectem via rede local para disputar uma partida em tempo real.
 
