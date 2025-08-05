@@ -40,13 +40,16 @@ public class BatalhaNaval extends JFrame {
     private final ImageIcon iconeErro = redimensionarIcone("/imagens/marcador.png");
     private final ImageIcon iconeMarcador = redimensionarIcone("/imagens/marcador.png");
 
+    private volatile boolean solicitouReinicio = false;
+    private volatile boolean adversarioSolicitouReinicio = false;
+
     private ImageIcon redimensionarIcone(String caminho) {
         Image img = new ImageIcon(getClass().getResource(caminho)).getImage();
         return new ImageIcon(img.getScaledInstance(tamanhoIcone, tamanhoIcone, Image.SCALE_SMOOTH));
     }
 
     public BatalhaNaval(String nome, boolean suaVez, ObjectInputStream entrada, ObjectOutputStream saida,
-            String nomeAdversario) {
+                        String nomeAdversario) {
         this.nomeAdversario = nomeAdversario;
         this.nome = nome;
         this.suaVez = suaVez;
@@ -81,9 +84,7 @@ public class BatalhaNaval extends JFrame {
         btnIniciar.addActionListener(e -> {
             iniciarJogo();
             btnIniciar.setEnabled(false);
-            btnReiniciar.setEnabled(true);
             btnDesistir.setEnabled(true);
-            // logArea.append("Jogo iniciado! Sua vez? " + suaVez + "\n");
         });
         painelControles.add(btnIniciar);
 
@@ -95,8 +96,8 @@ public class BatalhaNaval extends JFrame {
             if (confirm == JOptionPane.YES_OPTION) {
                 suaVez = false;
                 enviarReiniciarAoOponente();
-                resetarEstadoJogo(false);
                 btnIniciar.setEnabled(false);
+                logArea.append("Solicitação de reinício enviada. Aguardando resposta do adversário...\n");
             }
         });
         painelControles.add(btnReiniciar);
@@ -107,15 +108,9 @@ public class BatalhaNaval extends JFrame {
             int confirm = JOptionPane.showConfirmDialog(BatalhaNaval.this,
                     "Tem certeza que deseja desistir do jogo?", "Desistir do Jogo", JOptionPane.YES_NO_OPTION);
             if (confirm == JOptionPane.YES_OPTION) {
-                // logArea.append("Você desistiu do jogo.\n");
                 JOptionPane.showMessageDialog(BatalhaNaval.this, "Você desistiu e perdeu!");
-                dispose();
                 enviarDesistenciaAoOponente();
-                jogoEncerrado = true;
-                disableBoard();
-                btnReiniciar.setEnabled(false);
-                btnDesistir.setEnabled(false);
-                btnIniciar.setEnabled(false);
+                encerrarJogo("Você desistiu.");
             }
         });
         painelControles.add(btnDesistir);
@@ -155,10 +150,7 @@ public class BatalhaNaval extends JFrame {
                     if (tabuleiroJogador[l][c] == 0 && naviosRestantes > 0) {
                         tabuleiroJogador[l][c] = 1;
                         btn.setIcon(iconeNavio);
-
-                        // Som.tocarColocar();
                         naviosRestantes--;
-                        // logArea.append("Navio posicionado em: " + l + "," + c + "\n");
                         if (naviosRestantes == 0) {
                             logArea.append("Todos os navios posicionados!\n");
                             btnIniciar.setEnabled(true);
@@ -171,7 +163,6 @@ public class BatalhaNaval extends JFrame {
 
     private void iniciarJogo() {
         jogoEncerrado = false;
-
         EscreverXML.iniciarPartida(nome, nomeAdversario);
 
         for (int i = 0; i < 10; i++) {
@@ -220,32 +211,38 @@ public class BatalhaNaval extends JFrame {
                         switch (mensagem) {
                             case "FIM":
                                 if (!jogoEncerrado) {
-                                    jogoEncerrado = true;
                                     EscreverXML.registrarResultado(nome, ultimaJogada);
-                                    JOptionPane.showMessageDialog(BatalhaNaval.this, "Você venceu!");
-                                    dispose();
-                                    disableBoard();
-                                    btnReiniciar.setEnabled(true);
-                                    btnDesistir.setEnabled(true);
-                                    btnIniciar.setEnabled(false);
+                                    encerrarJogo("Você venceu!");
                                 }
                                 break;
                             case "REINICIAR":
-                                suaVez = true;
-                                resetarEstadoJogo(true);
-                                // logArea.append("O jogo foi reiniciado pelo adversário. Sua vez de jogar!\n");
-                                btnIniciar.setEnabled(false);
-                                btnReiniciar.setEnabled(true);
-                                btnDesistir.setEnabled(true);
+                                adversarioSolicitouReinicio = true;
+                                logArea.append("O adversário solicitou reinício da partida.\n");
+                                if (solicitouReinicio) {
+                                    suaVez = true;
+                                    resetarEstadoJogo(true);
+                                    solicitouReinicio = false;
+                                    adversarioSolicitouReinicio = false;
+                                    btnIniciar.setEnabled(false);
+                                    logArea.append("Reiniciando jogo conforme acordo entre os jogadores.\n");
+                                } else {
+                                    int resposta = JOptionPane.showConfirmDialog(this, "O adversário deseja reiniciar o jogo. Deseja reiniciar também?",
+                                            "Reiniciar Jogo", JOptionPane.YES_NO_OPTION);
+                                    if (resposta == JOptionPane.YES_OPTION) {
+                                        enviarReiniciarAoOponente();
+                                        suaVez = true;
+                                        resetarEstadoJogo(true);
+                                        solicitouReinicio = false;
+                                        adversarioSolicitouReinicio = false;
+                                        btnIniciar.setEnabled(false);
+                                        logArea.append("Reiniciando jogo conforme acordo entre os jogadores.\n");
+                                    } else {
+                                        dispose();
+                                    }
+                                }
                                 break;
                             case "DESISTENCIA":
-                                jogoEncerrado = true;
-                                JOptionPane.showMessageDialog(BatalhaNaval.this, "O oponente desistiu. Você venceu!");
-                                dispose();
-                                disableBoard();
-                                btnReiniciar.setEnabled(true);
-                                btnDesistir.setEnabled(true);
-                                btnIniciar.setEnabled(false);
+                                encerrarJogo("O oponente desistiu. Você venceu!");
                                 break;
                             case "ACERTO":
                                 JOptionPane.showMessageDialog(BatalhaNaval.this, "Você acertou um navio do oponente!");
@@ -257,7 +254,6 @@ public class BatalhaNaval extends JFrame {
                 }
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
-                    // logArea.append("Conexão encerrada.\n");
                     disableBoard();
                     btnReiniciar.setEnabled(false);
                     btnDesistir.setEnabled(false);
@@ -295,20 +291,13 @@ public class BatalhaNaval extends JFrame {
                     if (verificaDerrota()) {
                         logArea.append("Todos os navios destruídos. Você perdeu!\n");
                         EscreverXML.registrarResultado(nomeAdversario, coordenada);
-                        JOptionPane.showMessageDialog(this, "Você perdeu!");
-                        dispose();
                         enviarFimAoOponente();
-                        jogoEncerrado = true;
-                        disableBoard();
-                        btnReiniciar.setEnabled(true);
-                        btnDesistir.setEnabled(true);
-                        btnIniciar.setEnabled(false);
+                        encerrarJogo("Você perdeu!");
                         return;
                     }
 
                 } else {
                     btn.setIcon(iconeErro);
-                    // logArea.append("Oponente errou em " + linha + "," + coluna + "\n");
                     Som.tocarErro();
                     EscreverXML.registrarJogada(2, coordenada, "erro");
                 }
@@ -333,6 +322,7 @@ public class BatalhaNaval extends JFrame {
         try {
             saida.writeObject(mensagemReiniciar);
             saida.flush();
+            solicitouReinicio = true;
         } catch (Exception ex) {
             logArea.append("Erro ao enviar reinício: " + ex.getMessage() + "\n");
         }
@@ -350,9 +340,7 @@ public class BatalhaNaval extends JFrame {
     private boolean verificaDerrota() {
         for (int[] linha : tabuleiroJogador) {
             for (int cell : linha) {
-                if (cell == 1) {
-                    return false;
-                }
+                if (cell == 1) return false;
             }
         }
         return true;
@@ -382,5 +370,23 @@ public class BatalhaNaval extends JFrame {
         logArea.setText("");
         logArea.append("Jogo reiniciado! Posicione seus navios novamente.\n");
         posicionarNavios();
+    }
+    
+    private void encerrarJogo(String mensagemFinalUsuario) {
+        jogoEncerrado = true;
+        JOptionPane.showMessageDialog(this, mensagemFinalUsuario);
+        disableBoard();
+        btnReiniciar.setEnabled(true);
+        btnDesistir.setEnabled(true);
+        btnIniciar.setEnabled(false);
+
+        int resposta = JOptionPane.showConfirmDialog(this, "Deseja reiniciar a partida?", 
+                          "Reiniciar jogo", JOptionPane.YES_NO_OPTION);
+        if (resposta == JOptionPane.YES_OPTION) {
+            enviarReiniciarAoOponente();
+            logArea.append("Solicitação de reinício enviada. Aguardando resposta do adversário...\n");
+        } else {
+            dispose();
+        }
     }
 }

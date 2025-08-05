@@ -3,9 +3,23 @@
     <jogador1 nome="duda"/>
     <jogador2 nome=""/>
     <jogadas>
-        <jogada coordenada="C-8" jogador="1" resultado="enviada"/>
-        <jogada coordenada="F-6" jogador="2" resultado="erro"/>
-        <jogada coordenada="H-10" jogador="1" resultado="enviada"/>
-        <jogada coordenada="F-8" jogador="2" resultado="acerto"/>
+        <jogada coordenada="D-10" jogador="1" resultado="enviada"/>
+        <jogada coordenada="E-4" jogador="2" resultado="erro"/>
+        <jogada coordenada="E-9" jogador="1" resultado="enviada"/>
+        <jogada coordenada="C-4" jogador="2" resultado="erro"/>
+        <jogada coordenada="B-2" jogador="1" resultado="enviada"/>
+        <jogada coordenada="H-1" jogador="2" resultado="erro"/>
+        <jogada coordenada="F-9" jogador="1" resultado="enviada"/>
+        <jogada coordenada="H-4" jogador="2" resultado="erro"/>
+        <jogada coordenada="G-3" jogador="1" resultado="enviada"/>
+        <jogada coordenada="H-3" jogador="2" resultado="acerto"/>
+        <jogada coordenada="G-4" jogador="1" resultado="enviada"/>
+        <jogada coordenada="G-7" jogador="2" resultado="erro"/>
+        <jogada coordenada="C-6" jogador="1" resultado="enviada"/>
+        <jogada coordenada="D-2" jogador="2" resultado="erro"/>
+        <jogada coordenada="E-7" jogador="1" resultado="enviada"/>
+        <jogada coordenada="I-2" jogador="2" resultado="erro"/>
+        <jogada coordenada="E-6" jogador="1" resultado="enviada"/>
     </jogadas>
+    <resultado ultimaJogada="E-6" vencedor="duda"/>
 </partida>

@@ -1,7 +1,5 @@
 package jogo;
 
-import jogo.BatalhaNaval;
-
 import javax.swing.*;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
